@@ -130,8 +130,9 @@ def _run_epoch(
                     network.input_var: x_batch,
                     network.target_var: y_batch,
                     network.alfa: 0.1,
-                    network.conditional_distribution: y_distribution_batch
                 }
+                if hasattr(network, 'conditional_distribution'):
+                    feed_dict[network.conditional_distribution] = y_distribution_batch
 
                 _, loss_value_tmp[n], y_pred, logits = sess.run(
                     [train_op, network.loss_op, network.pred_op, network.logits],

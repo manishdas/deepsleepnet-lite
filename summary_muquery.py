@@ -155,7 +155,7 @@ def perf_overall(data_dir, ensembling):
     allfiles = os.listdir(data_dir)
     outputfiles = []
     for idx, f in enumerate(allfiles):
-        if re.match("^output_.+\d+\.npz", f):
+        if re.match(r"^output_.+\d+\.npz", f):
             outputfiles.append(os.path.join(data_dir, f))
     outputfiles.sort()
 
@@ -168,7 +168,7 @@ def perf_overall(data_dir, ensembling):
 
             f_y_true = np.hstack(f["y_true"])
             f_y_pred = np.hstack(f["y_pred"])
-            f_prob_pred = np.vstack(f["prob_pred"]) if ensembling else np.hstack(f["prob_pred"])
+            f_prob_pred = np.vstack(f["prob_pred"])
 
             y_true.extend(f_y_true)
             y_pred.extend(f_y_pred)
@@ -210,7 +210,7 @@ def perf_overall_selected_prob(data_dir, ensembling):
     allfiles = os.listdir(data_dir)
     outputfiles = []
     for idx, f in enumerate(allfiles):
-        if re.match("^output_.+\d+\.npz", f):
+        if re.match(r"^output_.+\d+\.npz", f):
             outputfiles.append(os.path.join(data_dir, f))
     outputfiles.sort()
 

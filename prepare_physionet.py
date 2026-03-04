@@ -130,17 +130,22 @@ def create_data_splits(n_subjects, n_folds, output_path):
     For fold k: test = subject k, validation = subject (k+1) % n_subjects.
     """
     valid_files = []
+    test_files = []
     for fold_idx in range(n_folds):
+        # Test subject is the fold index
+        test_files.append(np.array([fold_idx]))
         # Validation subject is the next one after the test subject
         valid_subj = (fold_idx + 1) % n_subjects
         valid_files.append(np.array([valid_subj]))
 
-    # Save as object array to match expected format (array of arrays)
+    # Save as object arrays to match expected format (array of arrays)
     valid_files_arr = np.empty(n_folds, dtype=object)
+    test_files_arr = np.empty(n_folds, dtype=object)
     for i in range(n_folds):
         valid_files_arr[i] = valid_files[i]
+        test_files_arr[i] = test_files[i]
 
-    np.savez(output_path, valid_files=valid_files_arr)
+    np.savez(output_path, valid_files=valid_files_arr, test_files=test_files_arr)
     print(f"Saved data splits to {output_path}")
 
 

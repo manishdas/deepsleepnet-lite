@@ -9,11 +9,16 @@ Produces .npz files in the format expected by deepsleeplite/data_loader.py:
 Also produces data_split_v1.npz with cross-validation fold assignments.
 
 Usage:
+    # Option 1: Auto-download via MNE (slow)
     python prepare_physionet.py --output_dir data/eeg_FpzCz_PzOz_v1 --n_subjects 20
+
+    # Option 2: Process pre-downloaded EDF files (fast)
+    python prepare_physionet.py --output_dir data/eeg_FpzCz_PzOz_v1 --raw_dir raw_data/sleep-cassette
 """
 
 import argparse
 import os
+import re
 import glob
 
 import numpy as np
@@ -139,28 +144,81 @@ def create_data_splits(n_subjects, n_folds, output_path):
     print(f"Saved data splits to {output_path}")
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description='Download and preprocess Sleep-EDF data for DeepSleepNet-Lite')
-    parser.add_argument('--output_dir', type=str, required=True,
-                        help='Directory to save processed .npz files')
-    parser.add_argument('--n_subjects', type=int, default=20,
-                        help='Number of subjects to download (default: 20 for v1)')
-    parser.add_argument('--n_folds', type=int, default=20,
-                        help='Number of cross-validation folds (default: 20)')
-    args = parser.parse_args()
+def process_from_local_dir(raw_dir, output_dir, n_folds):
+    """Process pre-downloaded EDF files from a local directory.
 
-    os.makedirs(args.output_dir, exist_ok=True)
+    Expects files named like SC4001E0-PSG.edf and SC4001E*-Hypnogram.edf
+    in the raw_dir.
+    """
+    # Find all PSG files for SC (Sleep Cassette) subjects
+    psg_pattern = os.path.join(raw_dir, 'SC*-PSG.edf')
+    psg_files = sorted(glob.glob(psg_pattern))
 
-    print(f"Downloading Sleep-EDF data for {args.n_subjects} subjects...")
+    if not psg_files:
+        raise FileNotFoundError(
+            f"No SC*-PSG.edf files found in {raw_dir}. "
+            f"Make sure you downloaded the sleep-cassette files from PhysioNet."
+        )
+
+    print(f"Found {len(psg_files)} PSG files in {raw_dir}")
+    os.makedirs(output_dir, exist_ok=True)
+
+    subject_ids = set()
+    processed = 0
+
+    for psg_path in psg_files:
+        basename = os.path.basename(psg_path)
+        # Extract subject info from filename like SC4001E0-PSG.edf
+        match = re.match(r'SC4(\d{2})(\d)E0-PSG\.edf', basename)
+        if not match:
+            print(f"  Skipping unrecognized file: {basename}")
+            continue
+
+        subj_id = int(match.group(1))
+        night = int(match.group(2))
+        subject_ids.add(subj_id)
+
+        # Find matching hypnogram
+        hyp_pattern = os.path.join(raw_dir, f'SC4{subj_id:02d}{night}E*-Hypnogram.edf')
+        hyp_files = glob.glob(hyp_pattern)
+        if not hyp_files:
+            # Try alternative naming
+            hyp_pattern = os.path.join(raw_dir, f'SC4{subj_id:02d}{night}*Hypnogram*')
+            hyp_files = glob.glob(hyp_pattern)
+        if not hyp_files:
+            print(f"  WARNING: No hypnogram found for {basename}, skipping.")
+            continue
+        hyp_path = hyp_files[0]
+
+        out_name = f"SC4{subj_id:02d}{night}E0.npz"
+        out_path = os.path.join(output_dir, out_name)
+
+        if os.path.exists(out_path):
+            print(f"  {out_name} already exists, skipping.")
+            processed += 1
+            continue
+
+        print(f"Processing {basename} -> {out_name}...")
+        if process_recording(psg_path, hyp_path, out_path):
+            processed += 1
+
+    n_subjects = len(subject_ids)
+    print(f"\nProcessed {processed} recordings from {n_subjects} subjects.")
+    return n_subjects
+
+
+def process_via_mne(n_subjects, output_dir):
+    """Download and process data via MNE (slower, but no manual download needed)."""
+    os.makedirs(output_dir, exist_ok=True)
+
+    print(f"Downloading Sleep-EDF data for {n_subjects} subjects via MNE...")
     print("This may take a while on the first run (downloads ~2GB from PhysioNet).\n")
 
     subjects_processed = 0
 
-    for subj_id in range(args.n_subjects):
-        print(f"Subject {subj_id}/{args.n_subjects - 1}:")
+    for subj_id in range(n_subjects):
+        print(f"Subject {subj_id}/{n_subjects - 1}:")
 
-        # Try to fetch both nights; some subjects only have 1 night
         for night in [1, 2]:
             try:
                 paths = mne.datasets.sleep_physionet.age.fetch_data(
@@ -175,10 +233,8 @@ def main():
 
             psg_path, hyp_path = paths[0]
 
-            # Output filename matching data_loader.py expectations:
-            # SC4{subj_id:02d}{night}E0.npz
             out_name = f"SC4{subj_id:02d}{night}E0.npz"
-            out_path = os.path.join(args.output_dir, out_name)
+            out_path = os.path.join(output_dir, out_name)
 
             if os.path.exists(out_path):
                 print(f"  {out_name} already exists, skipping.")
@@ -188,14 +244,39 @@ def main():
 
         subjects_processed += 1
 
+    return subjects_processed
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='Download and preprocess Sleep-EDF data for DeepSleepNet-Lite')
+    parser.add_argument('--output_dir', type=str, required=True,
+                        help='Directory to save processed .npz files')
+    parser.add_argument('--raw_dir', type=str, default=None,
+                        help='Directory with pre-downloaded EDF files (skip MNE download)')
+    parser.add_argument('--n_subjects', type=int, default=20,
+                        help='Number of subjects to download via MNE (default: 20)')
+    parser.add_argument('--n_folds', type=int, default=20,
+                        help='Number of cross-validation folds (default: 20)')
+    args = parser.parse_args()
+
+    if args.raw_dir:
+        # Fast path: process pre-downloaded files
+        n_subjects = process_from_local_dir(args.raw_dir, args.output_dir, args.n_folds)
+    else:
+        # Slow path: download via MNE one file at a time
+        n_subjects = process_via_mne(args.n_subjects, args.output_dir)
+
     # Create data splits file one directory up from output_dir
     split_dir = os.path.dirname(args.output_dir)
+    if not split_dir:
+        split_dir = '.'
     split_path = os.path.join(split_dir, 'data_split_v1.npz')
-    create_data_splits(args.n_subjects, args.n_folds, split_path)
+    create_data_splits(min(n_subjects, args.n_folds), args.n_folds, split_path)
 
     # Summary
     npz_files = sorted(glob.glob(os.path.join(args.output_dir, '*.npz')))
-    print(f"\nDone! Processed {subjects_processed} subjects, {len(npz_files)} recordings.")
+    print(f"\nDone! {len(npz_files)} recordings processed.")
     print(f"Data directory: {args.output_dir}")
     print(f"Data splits: {split_path}")
 

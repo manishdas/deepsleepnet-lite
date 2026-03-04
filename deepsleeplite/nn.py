@@ -24,9 +24,9 @@ def variable_with_weight_decay(name, shape, wd=None, freeze=False, normal_initia
     # He et al. 2015 - http://arxiv.org/abs/1502.01852
     stddev = np.sqrt(2.0 / fan_in)
     if normal_initializer:
-        initializer = tf.truncated_normal_initializer(stddev=stddev, dtype=tf.dtypes.float32)
+        initializer = tf.compat.v1.truncated_normal_initializer(stddev=stddev, dtype=tf.dtypes.float32)
     else:
-        initializer = tf.random_uniform_initializer(minval=-1, maxval=0, seed=None)
+        initializer = tf.compat.v1.random_uniform_initializer(minval=-1, maxval=0, seed=None)
 
     # # Xavier
     # initializer = tf.contrib.layers.xavier_initializer()
@@ -69,7 +69,7 @@ def conv_1d(name, input_var, filter_shape, stride, padding="SAME",
             biases = _create_variable(
                 "biases",
                 [filter_shape[-1]],
-                tf.constant_initializer(bias, dtype=tf.dtypes.float32)
+                tf.compat.v1.constant_initializer(bias, dtype=tf.dtypes.float32)
             )
             output_var = tf.nn.bias_add(output_var, biases)
 
@@ -99,19 +99,19 @@ def batch_norm(name, input_var, is_train, decay=0.999, epsilon=1e-5):
         # Trainable beta and gamma variables
         beta = tf.compat.v1.get_variable('beta',
                                shape=params_shape, dtype=tf.dtypes.float32,
-                               initializer=tf.zeros_initializer(dtype=tf.dtypes.float32))
+                               initializer=tf.compat.v1.zeros_initializer(dtype=tf.dtypes.float32))
         gamma = tf.compat.v1.get_variable('gamma',
                                 shape=params_shape, dtype=tf.dtypes.float32,
-                                initializer=tf.random_normal_initializer(mean=1.0, stddev=0.002, dtype=tf.dtypes.float32))
+                                initializer=tf.compat.v1.random_normal_initializer(mean=1.0, stddev=0.002, dtype=tf.dtypes.float32))
 
         # Moving mean and variance updated during training
         moving_mean = tf.compat.v1.get_variable('moving_mean',
                                       params_shape, dtype=tf.dtypes.float32,
-                                      initializer=tf.zeros_initializer(dtype=tf.dtypes.float32),
+                                      initializer=tf.compat.v1.zeros_initializer(dtype=tf.dtypes.float32),
                                       trainable=False)
         moving_variance = tf.compat.v1.get_variable('moving_variance',
                                           params_shape, dtype=tf.dtypes.float32,
-                                          initializer=tf.constant_initializer(1., dtype=tf.dtypes.float32),
+                                          initializer=tf.compat.v1.constant_initializer(1., dtype=tf.dtypes.float32),
                                           trainable=False)
 
         # Compute mean and variance along axis
@@ -172,7 +172,7 @@ def fc(name, input_var, n_hiddens, bias=None, wd=None, freeze_layer=False, norma
             biases = _create_variable(
                 "biases",
                 [n_hiddens],
-                tf.constant_initializer(bias, dtype=tf.dtypes.float32),
+                tf.compat.v1.constant_initializer(bias, dtype=tf.dtypes.float32),
                 freeze=freeze_layer
             )
             output_var = tf.add(output_var, biases)

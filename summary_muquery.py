@@ -7,6 +7,7 @@ import re
 
 import numpy as np
 import tensorflow as tf
+tf.compat.v1.disable_eager_execution()
 import tensorflow.compat.v1 as tf1
 from tensorflow_probability.python.internal import dtype_util
 
@@ -125,9 +126,9 @@ def expected_calibration_error(num_bins, logits=None, labels_true=None, labels_p
   return ece
 
 def print_performance(cm):
-    tp = np.diagonal(cm).astype(np.float)
-    tpfp = np.sum(cm, axis=0).astype(np.float)  # sum of each col
-    tpfn = np.sum(cm, axis=1).astype(np.float)  # sum of each row
+    tp = np.diagonal(cm).astype(np.float64)
+    tpfp = np.sum(cm, axis=0).astype(np.float64)  # sum of each col
+    tpfn = np.sum(cm, axis=1).astype(np.float64)  # sum of each row
     acc = np.sum(tp) / np.sum(cm)
     precision = tp / tpfp
     recall = tp / tpfn
@@ -200,7 +201,7 @@ def perf_overall(data_dir, ensembling):
     tensor_ECE = expected_calibration_error(20, logits=tensor_prob_pred, labels_true=tensor_labels_true,
                                             labels_predicted=None, name=None)
 
-    with tf.Session() as sess:
+    with tf.compat.v1.Session() as sess:
         ECE = tensor_ECE.eval()
         print("Expected Calibration Error {}".format(ECE))
 
@@ -290,7 +291,7 @@ def perf_overall_selected_prob(data_dir, ensembling):
     tensor_ECE = expected_calibration_error(20, logits = tensor_prob_pred, labels_true = tensor_labels_true,
     labels_predicted = None, name = None)
 
-    with tf.Session() as sess:
+    with tf.compat.v1.Session() as sess:
         ECE = tensor_ECE.eval()
         print("Expected Calibration Error {}".format(ECE))
 

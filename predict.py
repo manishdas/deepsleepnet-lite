@@ -4,6 +4,8 @@ import ntpath
 import os
 import time
 
+import tensorflow as tf
+tf.compat.v1.disable_eager_execution()
 from tensorflow.compat.v1 import ConfigProto
 
 from datetime import datetime
@@ -58,7 +60,7 @@ codingChange = {
 
 def print_performance(sess, network_name, n_examples, duration, loss, cm, acc, f1):
     # Get regularization loss
-    reg_loss = tf.add_n(tf.get_collection("losses", scope=network_name + "\/"))
+    reg_loss = tf.add_n(tf.compat.v1.get_collection("losses", scope=network_name + "\/"))
     reg_loss_value = sess.run(reg_loss)
 
     # Print performance
@@ -243,7 +245,7 @@ def predict_(
     # The model will be built into the default Graph
     config = ConfigProto()
     config.gpu_options.allow_growth = True
-    with tf.Graph().as_default(), tf.Session(config=config) as sess:
+    with tf.Graph().as_default(), tf.compat.v1.Session(config=config) as sess:
         valid_net = DeepSleepNetLite(
             batch_size=1,
             input_dims=EPOCH_SEC_LEN * SAMPLING_RATE,
@@ -278,9 +280,9 @@ def predict_(
                     continue
 
                 # Restore the trained model
-                saver = tf.train.Saver()
-                saver.restore(sess, tf.train.latest_checkpoint(checkpoint_path))
-                print("Model restored from: {}\n".format(tf.train.latest_checkpoint(checkpoint_path)))
+                saver = tf.compat.v1.train.Saver()
+                saver.restore(sess, tf.compat.v1.train.latest_checkpoint(checkpoint_path))
+                print("Model restored from: {}\n".format(tf.compat.v1.train.latest_checkpoint(checkpoint_path)))
 
                 # Load testing data -
                 x, y, subjects_files, sampling_rate = DataLoader.load_data_cv_baseline(
@@ -348,9 +350,9 @@ def predict_(
                 "The Model does not exist"
 
             # Restore the trained model
-            saver = tf.train.Saver()
-            saver.restore(sess, tf.train.latest_checkpoint(checkpoint_path))
-            print("Model restored from: {}\n".format(tf.train.latest_checkpoint(checkpoint_path)))
+            saver = tf.compat.v1.train.Saver()
+            saver.restore(sess, tf.compat.v1.train.latest_checkpoint(checkpoint_path))
+            print("Model restored from: {}\n".format(tf.compat.v1.train.latest_checkpoint(checkpoint_path)))
 
             # Load test files from existing data files -
             path_data_files = os.path.join(model_dir, "fold{}".format(fold_idx), "deepsleepnetlite/data_file{}.npz".format(fold_idx))
@@ -410,4 +412,4 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    tf.app.run()
+    tf.compat.v1.app.run()

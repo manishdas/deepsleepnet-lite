@@ -2,6 +2,7 @@
 # -*- coding: utf8 -*-
 import os
 import tensorflow as tf
+tf.compat.v1.disable_eager_execution()
 
 from deepsleeplite.trainer import DeepSleepNetLiteTrainer
 from deepsleeplite.sleep_stages import (NUM_CLASSES,

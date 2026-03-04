@@ -265,7 +265,7 @@ class DeepSleepNetLiteTrainer(Trainer):
             valid_net.init_ops()
 
             # Total number of trainable parameters
-            trainable_parameters = np.sum([np.prod(v.shape) for v in tf.trainable_variables()])
+            trainable_parameters = np.sum([np.prod(v.shape) for v in tf.compat.v1.trainable_variables()])
             print("Total number of trainable parameters : {}".format(int(trainable_parameters)))
 
             print("Network (layers={})".format(len(train_net.activations)))
@@ -314,7 +314,7 @@ class DeepSleepNetLiteTrainer(Trainer):
                 if os.path.exists(output_dir):
                     if os.path.isdir(os.path.join(output_dir, "checkpoint")):
                         # Restore the last checkpoint
-                        saver.restore(sess, tf.train.latest_checkpoint(ckpt_dir))
+                        saver.restore(sess, tf.compat.v1.train.latest_checkpoint(ckpt_dir))
                         # saver.restore(sess, tf.train.latest_checkpoint(output_dir))
                         print("Model restored")
                         print("[{}] Resume pre-training ...\n".format(datetime.now()))
@@ -438,9 +438,9 @@ class DeepSleepNetLiteTrainer(Trainer):
                 train_acc = np.mean(y_true_train == y_pred_train)
                 train_f1 = f1_score(y_true_train, y_pred_train, average="weighted")
 
-                tp = np.diagonal(train_cm).astype(np.float)
-                tpfp = np.sum(train_cm, axis=0).astype(np.float)  # sum of each col
-                tpfn = np.sum(train_cm, axis=1).astype(np.float)  # sum of each row
+                tp = np.diagonal(train_cm).astype(np.float64)
+                tpfp = np.sum(train_cm, axis=0).astype(np.float64)  # sum of each col
+                tpfn = np.sum(train_cm, axis=1).astype(np.float64)  # sum of each row
                 train_per_class_precision = tp / tpfp
                 train_per_class_recall = tp / tpfn
                 train_per_class_f1 = (2 * train_per_class_precision * train_per_class_recall) / (train_per_class_precision + train_per_class_recall)
@@ -464,9 +464,9 @@ class DeepSleepNetLiteTrainer(Trainer):
                 valid_acc = np.mean(y_true_valid == y_pred_valid)
                 valid_f1 = f1_score(y_true_valid, y_pred_valid, average="weighted")
 
-                tp = np.diagonal(valid_cm).astype(np.float)
-                tpfp = np.sum(valid_cm, axis=0).astype(np.float)  # sum of each col
-                tpfn = np.sum(valid_cm, axis=1).astype(np.float)  # sum of each row
+                tp = np.diagonal(valid_cm).astype(np.float64)
+                tpfp = np.sum(valid_cm, axis=0).astype(np.float64)  # sum of each col
+                tpfn = np.sum(valid_cm, axis=1).astype(np.float64)  # sum of each row
                 valid_per_class_precision = tp / tpfp
                 valid_per_class_recall = tp / tpfn
                 valid_per_class_f1 = (2 * valid_per_class_precision * valid_per_class_recall) / (valid_per_class_precision + valid_per_class_recall)
@@ -524,7 +524,7 @@ class DeepSleepNetLiteTrainer(Trainer):
                     best_valid_f1 = valid_f1
                     start_time = time.time()
                     if os.path.exists(ckpt_dir):
-                        tf.gfile.DeleteRecursively(ckpt_dir)
+                        tf.io.gfile.rmtree(ckpt_dir)
                     os.makedirs(ckpt_dir)
                     save_path = os.path.join(
                         ckpt_dir, "model_fold{}.ckpt".format(self.fold_idx)

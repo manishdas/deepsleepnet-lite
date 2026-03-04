@@ -21,24 +21,24 @@ from deepsleeplite.sleep_stages import (NUM_CLASSES,
                                         SAMPLING_RATE,
                                         DB_VERSION)
 
-FLAGS = tf.app.flags.FLAGS
+FLAGS = tf.compat.v1.app.flags.FLAGS
 
-tf.app.flags.DEFINE_string('data_dir', 'data',
+tf.compat.v1.app.flags.DEFINE_string('data_dir', 'data',
                            """Directory where to load training data.""")
-tf.app.flags.DEFINE_string('model_dir', 'output',
+tf.compat.v1.app.flags.DEFINE_string('model_dir', 'output',
                            """Directory where to load trained models.""")
-tf.app.flags.DEFINE_string('output_dir', 'output',
+tf.compat.v1.app.flags.DEFINE_string('output_dir', 'output',
                            """Directory where to save outputs.""")
-tf.app.flags.DEFINE_boolean('cross_validation', True,
+tf.compat.v1.app.flags.DEFINE_boolean('cross_validation', True,
                             """Whether to predict for each cross-validation fold.""")
-tf.app.flags.DEFINE_integer('n_folds', 20,
+tf.compat.v1.app.flags.DEFINE_integer('n_folds', 20,
                            """ If crossvalidation True, define the number of folds.""")
-tf.app.flags.DEFINE_boolean('MC_dropout', False,
+tf.compat.v1.app.flags.DEFINE_boolean('MC_dropout', False,
                             """Whether to predict using Monte Carlo dropout.""")
-tf.app.flags.DEFINE_integer('MC_sampling', 1,
+tf.compat.v1.app.flags.DEFINE_integer('MC_sampling', 1,
                            """ Define the number of Monte Carlo dropout sampling. Set MC_sampling equal to 1
                             if you do not want to use the MC_dropout""")
-tf.app.flags.DEFINE_boolean('smooth_stats', True,
+tf.compat.v1.app.flags.DEFINE_boolean('smooth_stats', True,
                             """""")
 
 coding2stages = {
@@ -60,7 +60,7 @@ codingChange = {
 
 def print_performance(sess, network_name, n_examples, duration, loss, cm, acc, f1):
     # Get regularization loss
-    reg_loss = tf.add_n(tf.compat.v1.get_collection("losses", scope=network_name + "\/"))
+    reg_loss = tf.add_n(tf.compat.v1.get_collection("losses", scope=network_name + "/"))
     reg_loss_value = sess.run(reg_loss)
 
     # Print performance

@@ -51,9 +51,9 @@ class DataLoader(object):
             # Sleep-EDF Database - Physionet - SC Healthy
             for idx, f in enumerate(allfiles):
                 if self.fold_idx < 10:
-                    pattern = re.compile("[a-zA-Z0-9]*0{}[1-9][A-Z]0\.npz$".format(self.fold_idx))
+                    pattern = re.compile(r"[a-zA-Z0-9]*0{}[1-9][A-Z]0\.npz$".format(self.fold_idx))
                 else:
-                    pattern = re.compile("[a-zA-Z0-9]*{}[1-9][A-Z]0\.npz$".format(self.fold_idx))
+                    pattern = re.compile(r"[a-zA-Z0-9]*{}[1-9][A-Z]0\.npz$".format(self.fold_idx))
                 if pattern.match(f):
                     test_files.append(os.path.join(self.data_dir, f))
 
@@ -67,9 +67,9 @@ class DataLoader(object):
                 if idxs == None: continue
                 for idx, f in enumerate(allfiles):
                     if idxs < 10:
-                        pattern = re.compile("[a-zA-Z0-9]*0{}[1-9][A-Z]0\.npz$".format(idxs))
+                        pattern = re.compile(r"[a-zA-Z0-9]*0{}[1-9][A-Z]0\.npz$".format(idxs))
                     else:
-                        pattern = re.compile("[a-zA-Z0-9]*{}[1-9][A-Z]0\.npz$".format(idxs))
+                        pattern = re.compile(r"[a-zA-Z0-9]*{}[1-9][A-Z]0\.npz$".format(idxs))
                     if pattern.match(f):
                         valid_files.append(os.path.join(self.data_dir, f))
 
@@ -87,9 +87,9 @@ class DataLoader(object):
                 if idxs == None: continue
                 for idx, f in enumerate(allfiles_enum):
                     if idxs < 10:
-                        pattern = re.compile("[a-zA-Z0-9]*0{}[1-9][A-Z]0\.npz$".format(idxs))
+                        pattern = re.compile(r"[a-zA-Z0-9]*0{}[1-9][A-Z]0\.npz$".format(idxs))
                     else:
-                        pattern = re.compile("[a-zA-Z0-9]*{}[1-9][A-Z]0\.npz$".format(idxs))
+                        pattern = re.compile(r"[a-zA-Z0-9]*{}[1-9][A-Z]0\.npz$".format(idxs))
                     if pattern.match(f):
                         train_files.append(os.path.join(self.data_dir, allfiles[idx]))
 
@@ -98,9 +98,9 @@ class DataLoader(object):
                 if idxs == None: continue
                 for idx, f in enumerate(allfiles_enum):
                     if idxs < 10:
-                        pattern = re.compile("[a-zA-Z0-9]*0{}[1-9][A-Z]0\.npz$".format(idxs))
+                        pattern = re.compile(r"[a-zA-Z0-9]*0{}[1-9][A-Z]0\.npz$".format(idxs))
                     else:
-                        pattern = re.compile("[a-zA-Z0-9]*{}[1-9][A-Z]0\.npz$".format(idxs))
+                        pattern = re.compile(r"[a-zA-Z0-9]*{}[1-9][A-Z]0\.npz$".format(idxs))
                     if pattern.match(f):
                         valid_files.append(os.path.join(self.data_dir, allfiles[idx]))
 
@@ -109,9 +109,9 @@ class DataLoader(object):
                 if idxs == None: continue
                 for idx, f in enumerate(allfiles_enum):
                     if idxs < 10:
-                        pattern = re.compile("[a-zA-Z0-9]*0{}[1-9][A-Z]0\.npz$".format(idxs))
+                        pattern = re.compile(r"[a-zA-Z0-9]*0{}[1-9][A-Z]0\.npz$".format(idxs))
                     else:
-                        pattern = re.compile("[a-zA-Z0-9]*{}[1-9][A-Z]0\.npz$".format(idxs))
+                        pattern = re.compile(r"[a-zA-Z0-9]*{}[1-9][A-Z]0\.npz$".format(idxs))
                     if pattern.match(f):
                         test_files.append(os.path.join(self.data_dir, allfiles[idx]))
 
@@ -307,9 +307,9 @@ class DataLoader(object):
             if idxs == None: continue
             for idx, f in enumerate(allfiles_enum):
                 if idxs < 10:
-                    pattern = re.compile("[a-zA-Z0-9]*0{}[1-9][A-Z]0\.npz$".format(idxs))
+                    pattern = re.compile(r"[a-zA-Z0-9]*0{}[1-9][A-Z]0\.npz$".format(idxs))
                 else:
-                    pattern = re.compile("[a-zA-Z0-9]*{}[1-9][A-Z]0\.npz$".format(idxs))
+                    pattern = re.compile(r"[a-zA-Z0-9]*{}[1-9][A-Z]0\.npz$".format(idxs))
                 if pattern.match(f):
                     subject_files.append(os.path.join(data_dir, allfiles[idx]))
 

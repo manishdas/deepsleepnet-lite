@@ -32,7 +32,7 @@ class Trainer(object):
                           train_duration, train_loss, train_acc, train_f1,
                           valid_duration, valid_loss, valid_acc, valid_f1):
         # Get regularization loss
-        train_reg_loss = tf.add_n(tf.compat.v1.get_collection("losses", scope=network_name + "\/"))
+        train_reg_loss = tf.add_n(tf.compat.v1.get_collection("losses", scope=network_name + "/"))
         train_reg_loss_value = sess.run(train_reg_loss)
         valid_reg_loss_value = train_reg_loss_value
 

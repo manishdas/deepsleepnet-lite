@@ -237,7 +237,7 @@ class DeepSleepNetLite(object):
 
             # Regularization loss
             regular_loss = tf.add_n(
-                tf.compat.v1.get_collection("losses", scope=scope.name + "\/"),
+                tf.compat.v1.get_collection("losses", scope=scope.name + "/"),
                 name="regular_loss"
             )
 

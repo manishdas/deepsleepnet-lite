@@ -153,7 +153,8 @@ def flatten(name, input_var):
 def fc(name, input_var, n_hiddens, bias=None, wd=None, freeze_layer=False, normal_initializer=True):
     with tf.compat.v1.variable_scope(name) as scope:
         # Get input dimension
-        input_dim = input_var.get_shape()[-1].value
+        dim = input_var.get_shape()[-1]
+        input_dim = dim if isinstance(dim, int) else dim.value
 
         # Trainable parameters
         weights = variable_with_weight_decay(

@@ -63,9 +63,9 @@ class DeepSleepNetLite(object):
 
     def _conv1d_layer(self, input_var, filter_size, n_filters, stride, wd=0):
         input_shape = input_var.get_shape()
-        n_batches = input_shape[0].value
-        input_dims = input_shape[1].value
-        n_in_filters = input_shape[3].value
+        n_batches = input_shape[0] if isinstance(input_shape[0], int) else input_shape[0].value
+        input_dims = input_shape[1] if isinstance(input_shape[1], int) else input_shape[1].value
+        n_in_filters = input_shape[3] if isinstance(input_shape[3], int) else input_shape[3].value
         name = "l{}_conv".format(self.layer_idx)
         with tf.compat.v1.variable_scope(name) as scope:
             output, weights = conv_1d(name="conv1d", input_var=input_var,

@@ -203,16 +203,23 @@ def _run_epoch(
 
     # # Save prediction
 
+    # Convert to object arrays for numpy compatibility (inhomogeneous shapes)
+    def _to_obj_array(lst):
+        arr = np.empty(len(lst), dtype=object)
+        for i, v in enumerate(lst):
+            arr[i] = v
+        return arr
+
     save_dict = {
-        "y_true": y_true,
-        "y_pred": y,
-        "prob_pred": prob_pred,
-        "y_var": y_var,
-        "y_true_selected": y_true_selected,
-        "y_pred_selected": y_selected,
-        "prob_pred_selected": prob_pred_selected,
-        "query_instances": query_instances,
-        "correct_among_query": correct_among_query
+        "y_true": _to_obj_array(y_true),
+        "y_pred": _to_obj_array(y),
+        "prob_pred": _to_obj_array(prob_pred),
+        "y_var": _to_obj_array(y_var),
+        "y_true_selected": _to_obj_array(y_true_selected),
+        "y_pred_selected": _to_obj_array(y_selected),
+        "prob_pred_selected": _to_obj_array(prob_pred_selected),
+        "query_instances": np.array(query_instances, dtype=object),
+        "correct_among_query": np.array(correct_among_query, dtype=object)
     }
     save_path = os.path.join(
         output_dir,

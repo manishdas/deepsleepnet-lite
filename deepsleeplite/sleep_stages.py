@@ -9,7 +9,7 @@ UNKNOWN = 5
 NUM_CLASSES = 5
 EPOCH_SEC_LEN = 30  # seconds
 SEQ_OF_EPOCHS = 3  # number of epochs in a sequence / length L
-SAMPLING_RATE = 100.0
+SAMPLING_RATE = 100
 
 DB_VERSION = 'v1'
 

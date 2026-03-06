@@ -100,8 +100,8 @@ All improvements build on top of the baseline. The goal is to show measurable ga
 | Temporal context (BiLSTM/Attention) | C | C | **R/A** | **R** | C |
 | Data augmentation | C | C | C | **R/A** | I |
 | Interpretability (Grad-CAM/saliency) | I | C | C | I | **R/A** |
-| Final report | **R** | **R** | **R** | **R** | **R** |
-| Presentation slides | **A** | **R** | **R** | **R** | **R** |
+| Presentation slides | C | C | C | C | **R/A** |
+| Final report (own section) | **R** | **R** | **R** | **R** | **R** |
 
 **Notes:**
 - Manish & Regith: Set up the baseline pipeline (data, model, training, evaluation, Colab infra). Available to consult on codebase questions.

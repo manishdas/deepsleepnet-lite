@@ -126,22 +126,41 @@ All improvements build on top of the baseline. The goal is to show measurable ga
 
 ## Metrics Explained (in context of this project)
 
+### Class Distribution — Why Metrics Matter
+
+![Class Distribution](../figures/class_distribution.png)
+
+The dataset is heavily imbalanced: N2 alone makes up 42.1% of all epochs, while N1 is only 6.6%. This imbalance is why we need multiple metrics — accuracy alone would be misleading since a model that always predicts N2 gets 42% accuracy for free.
+
+---
+
 ### Overall Accuracy
 - **What:** Fraction of correctly classified epochs out of all epochs.
 - **Our value:** 0.8092 (80.9%)
-- **Why it matters:** Simple to understand, but misleading with imbalanced classes. N2 dominates (42.1% of data), so a model predicting mostly N2 could get ~42% accuracy for free.
+- **Why it matters:** Simple to understand, but misleading with imbalanced data. Our 80.9% accuracy sounds good, but it's heavily driven by getting N2 right (17,799 samples). The model could completely fail on N1 (2,804 samples) and barely affect accuracy.
 - **Limitation:** Doesn't reflect poor N1 performance (only 6.6% of data).
+
+> **Baseline:** 34,171 correct out of 42,230 total epochs = **80.92%**
 
 ### Macro F1 Score
 - **What:** Unweighted average of per-class F1 scores. Treats all 5 classes equally regardless of size.
 - **Our value:** 0.7527
 - **Why it matters:** This is our **primary metric**. It penalizes the model for doing poorly on rare classes (N1). A model that ignores N1 entirely would have Macro-F1 around 0.60 even with high accuracy.
-- **How to improve:** Improving N1 has the biggest impact here.
+- **How to improve:** Improving N1 has the biggest impact here since it drags down the average.
+
+> **Baseline calculation:** (0.802 + 0.441 + 0.865 + 0.859 + 0.795) / 5 = **0.7527**
+> Notice how N1's 0.441 pulls the average well below the other four classes (~0.83).
 
 ### Weighted F1 Score
 - **What:** Average of per-class F1 scores, weighted by class support (number of samples).
 - **Our value:** 0.8113
-- **Why it matters:** Reflects performance proportional to how often each stage appears. Closer to accuracy but accounts for precision/recall tradeoffs. Higher than Macro-F1 because the model does well on frequent classes (N2, W, REM).
+- **Why it matters:** Reflects performance proportional to how often each stage appears. It's higher than Macro-F1 (0.811 vs 0.753) because the model does well on frequent classes (N2, W, REM) which carry more weight. The gap between Weighted F1 and Macro F1 (0.059) directly quantifies how much the model struggles on rare classes.
+
+> | Metric | Value | What it tells us |
+> |--------|-------|------------------|
+> | Macro F1 | 0.7527 | All classes weighted equally — dragged down by N1 |
+> | Weighted F1 | 0.8113 | Proportional to class size — N2 dominates |
+> | Gap | 0.059 | Larger gap = worse performance on rare classes |
 
 ### Cohen's Kappa
 - **What:** Agreement between predictions and ground truth, corrected for chance agreement. Ranges from -1 to 1 (0 = random, 1 = perfect).
@@ -149,33 +168,70 @@ All improvements build on top of the baseline. The goal is to show measurable ga
 - **Why it matters:** Standard metric in clinical sleep staging. A kappa of 0.74 indicates "substantial agreement" (0.61-0.80 range). For reference, inter-scorer agreement between human experts is typically kappa ~0.75-0.85. Our model is approaching the lower end of human-level agreement.
 - **Clinical threshold:** Kappa > 0.60 is generally considered clinically usable.
 
+> | Kappa Range | Interpretation | Where we stand |
+> |-------------|----------------|----------------|
+> | < 0.20 | Poor | |
+> | 0.21 – 0.40 | Fair | |
+> | 0.41 – 0.60 | Moderate | |
+> | 0.61 – 0.80 | Substantial | **Baseline: 0.740** |
+> | 0.81 – 1.00 | Almost perfect | Human experts: ~0.75–0.85 |
+
 ### Per-class F1 Score
+
+![Per-Class F1](../figures/training_curves_and_f1.png)
+
+The left panel shows per-class F1 scores. The right panel shows training curves averaged across all 20 folds (shaded region = standard deviation).
+
 - **What:** Harmonic mean of precision and recall for each individual class.
 - **Why it matters:** Reveals which stages the model struggles with. F1 balances two failure modes:
   - **Low precision** = too many false positives (predicting N1 when it's actually W/REM)
   - **Low recall** = too many false negatives (missing actual N1 epochs)
-- **Our weak spot:** N1 at 0.441 — the model misses over half of N1 epochs.
+- **Our weak spot:** N1 at 0.441 — the model misses over half of N1 epochs. The gray dashed line shows the Macro F1 (0.753). N1 is the only class significantly below this line, making it the primary target for improvement.
+- **Training curves insight:** The training loss converges well, but there's a gap between train and valid loss, suggesting some overfitting. The std shading shows that some folds are harder than others (subject variability).
 
 ### Precision and Recall (per class)
 - **Precision:** Of all epochs the model *predicted* as class X, what fraction were actually X?
 - **Recall (Sensitivity):** Of all epochs that *are* class X, what fraction did the model correctly identify?
-- **Example — N1:** Precision=0.408 (many false N1 predictions), Recall=0.481 (misses ~52% of real N1)
-- **Example — N3:** Precision=0.817, Recall=0.905 (model is good at finding deep sleep, occasional false positives)
+
+> | Stage | Precision | Recall | Interpretation |
+> |-------|-----------|--------|----------------|
+> | W | 0.852 | 0.759 | Good precision, but misses 24% of wake epochs |
+> | N1 | 0.408 | 0.481 | Both low — model both over- and under-predicts N1 |
+> | N2 | 0.879 | 0.852 | Strong on both — benefits from being the majority class |
+> | N3 | 0.817 | 0.905 | High recall (finds 91% of deep sleep), some false positives from N2 |
+> | REM | 0.780 | 0.811 | Decent, but some REM epochs get confused with N1 and N2 |
 
 ### Expected Calibration Error (ECE)
 - **What:** Measures how well the model's confidence scores match its actual accuracy. ECE=0 means perfect calibration.
 - **Our value:** 0.1099 (~11%)
 - **Why it matters:** When the model says it's 90% confident, is it actually correct 90% of the time? An ECE of 0.11 means there's about an 11% gap between confidence and accuracy on average. Important for clinical trust — doctors need to know when the model is uncertain.
+- **Context:** The "On Selected" results (after removing the 5% least-confident predictions) show accuracy improves from 80.9% to 83.0%, confirming that the model's confidence scores are somewhat informative — low-confidence predictions are indeed more likely to be wrong.
+
+> | | All predictions | After removing 5% least confident |
+> |---|---|---|
+> | Accuracy | 80.9% | 83.0% |
+> | Macro F1 | 0.753 | 0.771 |
+> | Confidence (mean) | 0.919 | 0.940 |
+> | ECE | 0.110 | 0.110 |
+>
+> Removing uncertain predictions improves accuracy by ~2%, confirming the model "knows when it doesn't know."
 
 ### Confusion Matrix (how to read it)
-- Rows = true labels, Columns = predicted labels
-- Diagonal = correct predictions
-- Off-diagonal = misclassifications
+
+![Confusion Matrices](../figures/confusion_matrices.png)
+
+The left matrix shows raw counts, the right shows row-normalized values (each row sums to 1.00).
+
+- **Rows** = true labels (what the epoch actually is)
+- **Columns** = predicted labels (what the model said)
+- **Diagonal** = correct predictions (darker blue = better)
+- **Off-diagonal** = misclassifications (ideally all zeros)
 - **Key patterns in our baseline:**
-  - N1 is confused with W (379), N2 (627), and REM (428) — N1 is inherently ambiguous
-  - N2 has some confusion with N3 (946) — adjacent stages are harder to distinguish
-  - N3 is well-isolated (very few off-diagonal errors)
-  - W is sometimes confused with N1 (913) and REM (618)
+  - **N1 row is the weakest** — only 0.48 on the diagonal. N1 epochs get scattered to W (0.14), N2 (0.22), and REM (0.15). This makes sense: N1 is a transitional stage with EEG features overlapping both wakefulness and REM.
+  - **N2 ↔ N3 confusion** — 946 N2 epochs misclassified as N3. These are adjacent NREM stages, and the boundary between them (amount of delta wave activity) can be ambiguous.
+  - **N3 is well-isolated** — 0.91 on the diagonal, very few errors. Deep sleep has distinctive high-amplitude delta waves that the CNN captures well.
+  - **W ↔ N1 and W ↔ REM** — Wake is confused with N1 (913) and REM (618). Drowsy wakefulness resembles light sleep, and wake with eyes closed can have alpha activity similar to REM.
+  - **What to watch for in improvements:** When we add focal loss or temporal context, check if N1's diagonal value increases and if the off-diagonal scatter decreases. The confusion matrix tells the full story that a single F1 number cannot.
 
 ---
 

@@ -2,10 +2,12 @@
 
 ## Project Overview
 
-**Course:** CSEP 590A Deep Learning
-**Task:** 5-class sleep stage classification (Wake, N1, N2, N3, REM) from raw EEG
-**Dataset:** Sleep-EDF v1 from PhysioNet — 39 recordings, 20 subjects, 42,230 epochs (30s each, Fpz-Cz channel, 100Hz)
-**Evaluation:** 20-fold leave-one-subject-out cross-validation (LOSO-CV)
+| | |
+|---|---|
+| **Course** | CSEP 590A Deep Learning |
+| **Task** | 5-class sleep stage classification (Wake, N1, N2, N3, REM) from raw EEG |
+| **Dataset** | Sleep-EDF v1 from PhysioNet — 39 recordings, 20 subjects, 42,230 epochs (30s each, Fpz-Cz channel, 100Hz) |
+| **Evaluation** | 20-fold leave-one-subject-out cross-validation (LOSO-CV) |
 
 ---
 

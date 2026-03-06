@@ -88,15 +88,25 @@ All improvements build on top of the baseline. The goal is to show measurable ga
 
 ## Suggested Task Assignment (5 people)
 
-| Person | Task | Effort |
-|--------|------|--------|
-| Person A | Focal loss / class-weighted loss experiment | 1 day |
-| Person B | Temporal context — BiLSTM or attention layer | 3-5 days |
-| Person C | Temporal context — help Person B, or try data augmentation | 2-3 days |
-| Person D | Interpretability (Grad-CAM / saliency maps) + report figures | 2-3 days |
-| Person E | Report writing + ablation analysis | 2-3 days |
+### RACI Matrix
 
-Everyone should coordinate on using the **same 20-fold LOSO-CV** and saving results in the same format for the comparison table.
+**R** = Responsible (does the work), **A** = Accountable (owns the outcome), **C** = Consulted, **I** = Informed
+
+| Task | Manish | Shrinivas | Nithin | Regith | Thangakumar |
+|------|--------|-----------|--------|--------|-------------|
+| Data pipeline & baseline setup | **R/A** (Done) | I | I | **R** (Done) | I |
+| Colab notebook & infra | **R/A** (Done) | I | I | **R** (Done) | I |
+| Focal loss / class-weighted loss | C | **R/A** | I | I | C |
+| Temporal context (BiLSTM/Attention) | C | C | **R/A** | **R** | C |
+| Data augmentation | C | C | C | **R/A** | I |
+| Interpretability (Grad-CAM/saliency) | I | C | C | I | **R/A** |
+| Final report | **R** | **R** | **R** | **R** | **R** |
+| Presentation slides | **A** | **R** | **R** | **R** | **R** |
+
+**Notes:**
+- Manish & Regith: Set up the baseline pipeline (data, model, training, evaluation, Colab infra). Available to consult on codebase questions.
+- Everyone is responsible for running their experiments using the same 20-fold LOSO-CV protocol and reporting results in the comparison table format.
+- All code should be committed to the repo. Create a new notebook for each experiment (e.g., `DeepSleepNet_Lite_FocalLoss_Colab.ipynb`).
 
 ---
 

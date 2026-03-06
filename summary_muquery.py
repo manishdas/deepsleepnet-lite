@@ -312,6 +312,10 @@ def main():
             data_dir = args.data_dir if not ensembling \
                 else os.path.join(args.data_dir, 'MC30')
 
+            if not os.path.exists(data_dir):
+                print(f"\nSkipping Monte Carlo Dropout analysis (directory not found: {data_dir})")
+                continue
+
             print(" ")
             print(f"\nModel: {os.path.basename(args.data_dir)} ; Monte Carlo Dropout: {ensembling}")
 

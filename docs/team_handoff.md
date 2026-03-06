@@ -51,6 +51,20 @@
 
 **Key observation:** N1 (light sleep) is the clear bottleneck at 0.441 F1. It's frequently confused with Wake (379 misclassified) and REM (428 misclassified). This is expected — N1 is inherently ambiguous and severely underrepresented (6.6% of data vs. N2 at 42.1%).
 
+#### Class Distribution
+![Class Distribution](../figures/class_distribution.png)
+
+#### Confusion Matrices
+![Confusion Matrices](../figures/confusion_matrices.png)
+
+#### Per-Class F1 & Training Curves (mean +/- std across 20 folds)
+![Training Curves and F1](../figures/training_curves_and_f1.png)
+
+#### Sample EEG Epoch
+![Sample EEG](../figures/sample_eeg_epoch.png)
+
+> All figures and results are also available on [Google Drive](https://drive.google.com/drive/u/0/folders/1S-RIIPcetbevDHsgY6hutbXkAKefsV5C).
+
 ---
 
 ## What Needs to Happen Next

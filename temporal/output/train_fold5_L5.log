@@ -1,0 +1,125 @@
+Logging to: /kaggle/working/temporal_output/train_fold5_L5.log
+
+======================================================================
+Fold 5 | seq_length=5 | device=cuda
+CPU cores: 4 | DataLoader workers: 2 | PyTorch threads: 4
+======================================================================
+
+[1] Loading data...
+  Train: 32098 sequences
+  Val:   8144 sequences
+  Test:  1910 sequences
+  Class weights: [1.043 2.925 0.468 1.524 1.101]
+
+[2] Stage 1: Pre-training CNN on individual epochs...
+  [CNN pretrain] epoch   1/50: train loss=0.6815 acc=0.748 f1=0.694 | val loss=0.7105 acc=0.719 f1=0.670 kappa=0.634 lr=1.0e-03 (6.9s) *
+  [CNN pretrain] epoch   3/50: train loss=0.5169 acc=0.815 f1=0.770 | val loss=0.5601 acc=0.767 f1=0.717 kappa=0.697 lr=1.0e-03 (6.3s) *
+  [CNN pretrain] epoch   5/50: train loss=0.4981 acc=0.819 f1=0.776 | val loss=0.5623 acc=0.785 f1=0.737 kappa=0.718 lr=1.0e-03 (6.2s) *
+  [CNN pretrain] epoch  10/50: train loss=0.4547 acc=0.827 f1=0.788 | val loss=0.6886 acc=0.759 f1=0.702 kappa=0.680 lr=1.0e-03 (6.3s)
+  [CNN pretrain] epoch  11/50: train loss=0.4539 acc=0.826 f1=0.787 | val loss=0.5353 acc=0.826 f1=0.767 kappa=0.769 lr=1.0e-03 (6.2s) *
+  [CNN pretrain] epoch  15/50: train loss=0.4336 acc=0.832 f1=0.796 | val loss=0.5058 acc=0.782 f1=0.741 kappa=0.719 lr=1.0e-03 (6.2s)
+  [CNN pretrain] epoch  20/50: train loss=0.3916 acc=0.846 f1=0.813 | val loss=0.5835 acc=0.783 f1=0.734 kappa=0.716 lr=5.0e-04 (6.2s)
+  [CNN pretrain] epoch  25/50: train loss=0.3681 acc=0.852 f1=0.820 | val loss=0.6730 acc=0.796 f1=0.733 kappa=0.732 lr=5.0e-04 (6.3s)
+  Early stopping at epoch 26 (patience=15)
+  Saved CNN weights: /kaggle/working/temporal_output/cnn_fold5.pt
+  CNN-only val: acc=0.826 f1_macro=0.767 kappa=0.769
+
+  Loaded pre-trained CNN into sequence model
+
+[3] Stage 2: Training BiLSTM (CNN frozen)...
+  Trainable params: 199,941
+  [LSTM] epoch   1/50: train loss=0.3829 acc=0.855 f1=0.822 | val loss=0.4969 acc=0.817 f1=0.771 kappa=0.761 lr=1.0e-03 (10.0s) *
+  [LSTM] epoch   3/50: train loss=0.3299 acc=0.866 f1=0.835 | val loss=0.4394 acc=0.828 f1=0.783 kappa=0.775 lr=1.0e-03 (9.5s) *
+  [LSTM] epoch   5/50: train loss=0.3258 acc=0.866 f1=0.835 | val loss=0.4946 acc=0.796 f1=0.756 kappa=0.736 lr=1.0e-03 (9.5s)
+  [LSTM] epoch   9/50: train loss=0.3206 acc=0.868 f1=0.838 | val loss=0.4392 acc=0.832 f1=0.786 kappa=0.779 lr=1.0e-03 (9.5s) *
+  [LSTM] epoch  10/50: train loss=0.3190 acc=0.869 f1=0.839 | val loss=0.4611 acc=0.804 f1=0.763 kappa=0.746 lr=1.0e-03 (9.5s)
+  [LSTM] epoch  15/50: train loss=0.3116 acc=0.871 f1=0.841 | val loss=0.4872 acc=0.810 f1=0.768 kappa=0.752 lr=1.0e-03 (9.6s)
+  [LSTM] epoch  20/50: train loss=0.3054 acc=0.872 f1=0.842 | val loss=0.4798 acc=0.823 f1=0.777 kappa=0.768 lr=5.0e-04 (9.5s)
+  [LSTM] epoch  22/50: train loss=0.3025 acc=0.873 f1=0.843 | val loss=0.4511 acc=0.831 f1=0.787 kappa=0.777 lr=5.0e-04 (9.5s) *
+  [LSTM] epoch  25/50: train loss=0.2996 acc=0.875 f1=0.846 | val loss=0.4718 acc=0.821 f1=0.776 kappa=0.766 lr=5.0e-04 (9.6s)
+  [LSTM] epoch  26/50: train loss=0.3025 acc=0.875 f1=0.846 | val loss=0.4412 acc=0.831 f1=0.787 kappa=0.778 lr=5.0e-04 (9.4s) *
+  [LSTM] epoch  30/50: train loss=0.2976 acc=0.876 f1=0.847 | val loss=0.4521 acc=0.827 f1=0.783 kappa=0.773 lr=5.0e-04 (9.5s)
+  [LSTM] epoch  35/50: train loss=0.2932 acc=0.876 f1=0.847 | val loss=0.4831 acc=0.823 f1=0.776 kappa=0.767 lr=2.5e-04 (9.4s)
+  [LSTM] epoch  40/50: train loss=0.2910 acc=0.877 f1=0.849 | val loss=0.4660 acc=0.819 f1=0.777 kappa=0.764 lr=2.5e-04 (9.3s)
+  Early stopping at epoch 41 (patience=15)
+
+[4] Stage 3: Fine-tuning end-to-end...
+  Trainable params: 345,189
+  [Fine-tune] epoch   1/30: train loss=0.2978 acc=0.876 f1=0.848 | val loss=0.5383 acc=0.809 f1=0.760 kappa=0.750 lr=1.0e-04 (24.6s) *
+  [Fine-tune] epoch   2/30: train loss=0.2851 acc=0.881 f1=0.853 | val loss=0.5168 acc=0.813 f1=0.765 kappa=0.756 lr=1.0e-04 (24.6s) *
+  [Fine-tune] epoch   3/30: train loss=0.2814 acc=0.881 f1=0.853 | val loss=0.4997 acc=0.831 f1=0.781 kappa=0.776 lr=1.0e-04 (24.7s) *
+  [Fine-tune] epoch   5/30: train loss=0.2730 acc=0.883 f1=0.855 | val loss=0.5861 acc=0.805 f1=0.755 kappa=0.743 lr=1.0e-04 (24.6s)
+  [Fine-tune] epoch   9/30: train loss=0.2627 acc=0.888 f1=0.861 | val loss=0.4745 acc=0.835 f1=0.787 kappa=0.782 lr=1.0e-04 (24.8s) *
+  [Fine-tune] epoch  10/30: train loss=0.2571 acc=0.891 f1=0.864 | val loss=0.5028 acc=0.826 f1=0.779 kappa=0.771 lr=1.0e-04 (24.7s)
+  [Fine-tune] epoch  15/30: train loss=0.2470 acc=0.894 f1=0.868 | val loss=0.6337 acc=0.810 f1=0.759 kappa=0.749 lr=1.0e-04 (24.7s)
+  [Fine-tune] epoch  20/30: train loss=0.2317 acc=0.901 f1=0.876 | val loss=0.5709 acc=0.819 f1=0.771 kappa=0.761 lr=5.0e-05 (24.7s)
+  Early stopping at epoch 24 (patience=15)
+
+[5] Final evaluation...
+
+  Validation:
+    Accuracy:    0.8351
+    F1 (macro):  0.7869
+    F1 (weighted): 0.8469
+    Kappa:       0.7821
+
+    Classification Report:
+              precision    recall  f1-score   support
+
+        Wake      0.889     0.907     0.898      1553
+          N1      0.324     0.678     0.439       451
+          N2      0.934     0.811     0.869      3262
+          N3      0.854     0.966     0.907      1242
+         REM      0.899     0.758     0.823      1636
+
+    accuracy                          0.835      8144
+   macro avg      0.780     0.824     0.787      8144
+weighted avg      0.873     0.835     0.847      8144
+
+    Confusion Matrix:
+[[1408  126    5    8    6]
+ [  94  306   22    3   26]
+ [  40  275 2647  193  107]
+ [   3    2   37 1200    0]
+ [  38  235  122    1 1240]]
+
+  Test:
+    Accuracy:    0.8932
+    F1 (macro):  0.8508
+    F1 (weighted): 0.8940
+    Kappa:       0.8534
+
+    Classification Report:
+              precision    recall  f1-score   support
+
+        Wake      0.931     0.924     0.927       422
+          N1      0.567     0.589     0.578       158
+          N2      0.957     0.899     0.927       833
+          N3      0.900     0.940     0.919       249
+         REM      0.845     0.968     0.902       248
+
+    accuracy                          0.893      1910
+   macro avg      0.840     0.864     0.851      1910
+weighted avg      0.897     0.893     0.894      1910
+
+    Confusion Matrix:
+[[390  25   4   2   1]
+ [ 28  93  13   0  24]
+ [  1  40 749  24  19]
+ [  0   0  15 234   0]
+ [  0   6   2   0 240]]
+
+  Saved model: /kaggle/working/temporal_output/cnn_bilstm_fold5_L5.pt
+  Saved results: /kaggle/working/temporal_output/fold5_results.json
+
+======================================================================
+SUMMARY
+======================================================================
+  fold: 5
+  seq_length: 5
+  val_accuracy: 0.8351
+  val_f1_macro: 0.7869
+  val_kappa: 0.7821
+  test_accuracy: 0.8932
+  test_f1_macro: 0.8508
+  test_kappa: 0.8534

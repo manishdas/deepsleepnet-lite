@@ -193,23 +193,21 @@ Val:    4 subjects →  7,467 sequences
 Test:   1 subject  →  1,960 sequences
 ```
 
-## Results: 2-fold Partial (20-fold in progress)
+## Results: 20-fold LOSO-CV
 
-> **Note:** These results are from folds 0 and 1 only. Full 20-fold LOSO-CV results will replace this section once the overnight run completes.
+### Aggregate metrics (mean ± std, 20 folds)
 
-### Aggregate metrics (mean ± std, 2 folds)
-
-| Metric        | DeepSleepNet-Lite (20-fold) | CNN+BiLSTM (2-fold) |
-| ------------- | --------------------------- | ------------------- |
-| Accuracy      | 0.8092                      | **0.8847 ± 0.009**  |
-| Macro-F1      | 0.7527                      | **0.8311 ± 0.030**  |
-| Weighted-F1   | 0.8113                      | **0.8862 ± 0.011**  |
-| Cohen's Kappa | 0.7400                      | **0.8398 ± 0.002**  |
-| Parameters    | ~648K                       | **345K**            |
+| Metric | DeepSleepNet-Lite (20-fold) | CNN+BiLSTM (20-fold) |
+| --- | --- | --- |
+| Accuracy | 0.8092 | **0.8314 ± 0.072** |
+| Macro-F1 | 0.7527 | **0.7782 ± 0.078** |
+| Weighted-F1 | 0.8113 | **0.8366 ± 0.073** |
+| Cohen's Kappa | 0.7400 | **0.7684 ± 0.094** |
+| Parameters | ~648K | **345K** |
 
 ### Figures
 
-All figures are generated from the 2-fold JSON results via `plot_results.py --mode all`.
+All figures are generated from the 20-fold JSON results via `plot_results.py --mode all`.
 
 ![Class Distribution](figures/class_distribution.png)
 ![Confusion Matrices](figures/confusion_matrices.png)

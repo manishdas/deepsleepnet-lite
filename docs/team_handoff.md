@@ -263,10 +263,10 @@ The left matrix shows raw counts, the right shows row-normalized values (each ro
 | ----- | -------- | -------- | ----------- | ----- | ---- | ----- | ----- | ----- | ------ | --- |
 | **DeepSleepNet-Lite (baseline)** | **0.8092** | **0.7527** | **0.8113** | **0.7400** | **0.802** | **0.441** | **0.865** | **0.859** | **0.795** | **0.110** |
 | + Focal Loss | — | — | — | — | — | — | — | — | — | — |
-| + Temporal Context (BiLSTM)* | 0.885 | 0.831 | 0.886 | 0.840 | 0.918 | 0.523 | 0.916 | 0.918 | 0.881 | — |
+| + Temporal Context (BiLSTM) | 0.831 | 0.778 | 0.837 | 0.768 | 0.874 | 0.477 | 0.859 | 0.868 | 0.813 | — |
 | + Both | — | — | — | — | — | — | — | — | — | — |
 
-\* *2-fold partial results (folds 0-1). Full 20-fold LOSO-CV in progress. See `temporal/README.md` for details.*
+*BiLSTM results are full 20-fold LOSO-CV (Kaggle P100). See `temporal/README.md` for architecture and training details.*
 
 **Primary comparison metric:** Macro F1 (treats all classes equally)
 **Secondary:** Cohen's Kappa (clinical relevance), N1 F1 (our weakest class)

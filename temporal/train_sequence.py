@@ -13,6 +13,8 @@ Usage:
 """
 
 import argparse
+import json
+import logging
 import multiprocessing
 import os
 import time
@@ -38,6 +40,27 @@ from torch.utils.data import DataLoader
 
 # Use half of available CPU cores for data loading, rest for compute
 NUM_WORKERS = min(multiprocessing.cpu_count() // 2, 8)
+
+log = logging.getLogger('train')
+
+
+def setup_logging(output_dir, fold_idx, seq_length):
+    """Configure logging to both console and log file."""
+    os.makedirs(output_dir, exist_ok=True)
+    log_path = os.path.join(output_dir, f'train_fold{fold_idx}_L{seq_length}.log')
+
+    log.setLevel(logging.INFO)
+    fmt = logging.Formatter('%(message)s')
+
+    ch = logging.StreamHandler()
+    ch.setFormatter(fmt)
+    log.addHandler(ch)
+
+    fh = logging.FileHandler(log_path, mode='w')
+    fh.setFormatter(fmt)
+    log.addHandler(fh)
+
+    return log_path
 
 
 def get_device():
@@ -107,10 +130,17 @@ def evaluate(model, loader, criterion, device):
 
 def train_loop(model, train_loader, val_loader, criterion, optimizer, scheduler,
                device, n_epochs, patience, clip_norm=None, stage_name=''):
-    """Generic training loop with early stopping on val F1-macro."""
+    """Generic training loop with early stopping on val F1-macro.
+
+    Returns:
+        best_f1: float
+        history: dict with per-epoch metrics (every epoch, not just printed ones)
+    """
     best_f1 = 0
     best_state = None
     wait = 0
+    history = {'epoch': [], 'train_loss': [], 'val_loss': [],
+               'train_f1': [], 'val_f1': []}
 
     for epoch in range(1, n_epochs + 1):
         t0 = time.time()
@@ -118,6 +148,13 @@ def train_loop(model, train_loader, val_loader, criterion, optimizer, scheduler,
             model, train_loader, criterion, optimizer, device, clip_norm)
         val_metrics = evaluate(model, val_loader, criterion, device)
         elapsed = time.time() - t0
+
+        # Record every epoch
+        history['epoch'].append(epoch)
+        history['train_loss'].append(round(train_loss, 5))
+        history['val_loss'].append(round(val_metrics['loss'], 5))
+        history['train_f1'].append(round(train_f1, 4))
+        history['val_f1'].append(round(val_metrics['f1_macro'], 4))
 
         scheduler.step(-val_metrics['f1_macro'])
 
@@ -132,18 +169,18 @@ def train_loop(model, train_loader, val_loader, criterion, optimizer, scheduler,
 
         if epoch % 5 == 0 or epoch == 1 or marker:
             lr = optimizer.param_groups[0]['lr']
-            print(f'  [{stage_name}] epoch {epoch:3d}/{n_epochs}: '
-                  f'train loss={train_loss:.4f} acc={train_acc:.3f} f1={train_f1:.3f} | '
-                  f'val loss={val_metrics["loss"]:.4f} acc={val_metrics["accuracy"]:.3f} '
-                  f'f1={val_metrics["f1_macro"]:.3f} kappa={val_metrics["kappa"]:.3f} '
-                  f'lr={lr:.1e} ({elapsed:.1f}s){marker}')
+            log.info(f'  [{stage_name}] epoch {epoch:3d}/{n_epochs}: '
+                     f'train loss={train_loss:.4f} acc={train_acc:.3f} f1={train_f1:.3f} | '
+                     f'val loss={val_metrics["loss"]:.4f} acc={val_metrics["accuracy"]:.3f} '
+                     f'f1={val_metrics["f1_macro"]:.3f} kappa={val_metrics["kappa"]:.3f} '
+                     f'lr={lr:.1e} ({elapsed:.1f}s){marker}')
 
         if wait >= patience:
-            print(f'  Early stopping at epoch {epoch} (patience={patience})')
+            log.info(f'  Early stopping at epoch {epoch} (patience={patience})')
             break
 
     model.load_state_dict(best_state)
-    return best_f1
+    return best_f1, history
 
 
 def run_fold(fold_idx, seq_length, args):
@@ -151,22 +188,22 @@ def run_fold(fold_idx, seq_length, args):
     device = get_device()
     n_cpu = multiprocessing.cpu_count()
     torch.set_num_threads(n_cpu)
-    print(f'\n{"=" * 70}')
-    print(f'Fold {fold_idx} | seq_length={seq_length} | device={device}')
-    print(f'CPU cores: {n_cpu} | DataLoader workers: {NUM_WORKERS} | '
-          f'PyTorch threads: {torch.get_num_threads()}')
-    print(f'{"=" * 70}')
+    log.info(f'\n{"=" * 70}')
+    log.info(f'Fold {fold_idx} | seq_length={seq_length} | device={device}')
+    log.info(f'CPU cores: {n_cpu} | DataLoader workers: {NUM_WORKERS} | '
+             f'PyTorch threads: {torch.get_num_threads()}')
+    log.info(f'{"=" * 70}')
 
     # Load data
-    print('\n[1] Loading data...')
+    log.info('\n[1] Loading data...')
     (train_recs, val_recs, _,
      train_seq_ds, val_seq_ds, test_seq_ds,
      class_weights) = get_fold_data(fold_idx, seq_length)
 
-    print(f'  Train: {len(train_seq_ds)} sequences')
-    print(f'  Val:   {len(val_seq_ds)} sequences')
-    print(f'  Test:  {len(test_seq_ds)} sequences')
-    print(f'  Class weights: {class_weights.numpy().round(3)}')
+    log.info(f'  Train: {len(train_seq_ds)} sequences')
+    log.info(f'  Val:   {len(val_seq_ds)} sequences')
+    log.info(f'  Test:  {len(test_seq_ds)} sequences')
+    log.info(f'  Class weights: {class_weights.numpy().round(3)}')
 
     criterion = nn.CrossEntropyLoss(weight=class_weights.to(device))
 
@@ -182,7 +219,7 @@ def run_fold(fold_idx, seq_length, args):
 
     # ── Stage 1: Pre-train CNN on individual epochs ──
     if not args.skip_pretrain:
-        print('\n[2] Stage 1: Pre-training CNN on individual epochs...')
+        log.info('\n[2] Stage 1: Pre-training CNN on individual epochs...')
         cnn_model = SleepCNNOnly(n_channels=2, n_classes=5).to(device)
 
         epoch_train_ds = SleepEpochDataset(train_recs)
@@ -193,20 +230,21 @@ def run_fold(fold_idx, seq_length, args):
         optimizer = optim.Adam(cnn_model.parameters(), lr=1e-3, weight_decay=1e-4)
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=7, factor=0.5)
 
-        train_loop(cnn_model, epoch_train_loader, epoch_val_loader, criterion,
-                   optimizer, scheduler, device, n_epochs=args.cnn_epochs,
-                   patience=15, stage_name='CNN pretrain')
+        _, cnn_history = train_loop(
+            cnn_model, epoch_train_loader, epoch_val_loader, criterion,
+            optimizer, scheduler, device, n_epochs=args.cnn_epochs,
+            patience=15, stage_name='CNN pretrain')
 
         # Save CNN checkpoint
         os.makedirs(args.output_dir, exist_ok=True)
         cnn_path = os.path.join(args.output_dir, f'cnn_fold{fold_idx}.pt')
         torch.save(cnn_model.cnn.state_dict(), cnn_path)
-        print(f'  Saved CNN weights: {cnn_path}')
+        log.info(f'  Saved CNN weights: {cnn_path}')
 
         # Evaluate CNN-only baseline
         cnn_val = evaluate(cnn_model, epoch_val_loader, criterion, device)
-        print(f'  CNN-only val: acc={cnn_val["accuracy"]:.3f} '
-              f'f1_macro={cnn_val["f1_macro"]:.3f} kappa={cnn_val["kappa"]:.3f}')
+        log.info(f'  CNN-only val: acc={cnn_val["accuracy"]:.3f} '
+                 f'f1_macro={cnn_val["f1_macro"]:.3f} kappa={cnn_val["kappa"]:.3f}')
 
         # Free epoch data
         del epoch_train_ds, epoch_val_ds, epoch_train_loader, epoch_val_loader
@@ -222,57 +260,105 @@ def run_fold(fold_idx, seq_length, args):
     if not args.skip_pretrain:
         model.cnn.load_state_dict(torch.load(cnn_path, map_location=device,
                                              weights_only=True))
-        print('\n  Loaded pre-trained CNN into sequence model')
+        log.info('\n  Loaded pre-trained CNN into sequence model')
 
     # ── Stage 2: Freeze CNN, train LSTM ──
-    print('\n[3] Stage 2: Training BiLSTM (CNN frozen)...')
+    log.info('\n[3] Stage 2: Training BiLSTM (CNN frozen)...')
     model.freeze_cnn()
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    print(f'  Trainable params: {trainable:,}')
+    log.info(f'  Trainable params: {trainable:,}')
 
     optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()),
                            lr=1e-3, weight_decay=1e-4)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=7, factor=0.5)
 
-    train_loop(model, train_seq_loader, val_seq_loader, criterion,
-               optimizer, scheduler, device, n_epochs=args.lstm_epochs,
-               patience=15, clip_norm=1.0, stage_name='LSTM')
+    _, lstm_history = train_loop(
+        model, train_seq_loader, val_seq_loader, criterion,
+        optimizer, scheduler, device, n_epochs=args.lstm_epochs,
+        patience=15, clip_norm=1.0, stage_name='LSTM')
 
     # ── Stage 3: Unfreeze, fine-tune end-to-end ──
-    print('\n[4] Stage 3: Fine-tuning end-to-end...')
+    log.info('\n[4] Stage 3: Fine-tuning end-to-end...')
     model.unfreeze_cnn()
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    print(f'  Trainable params: {trainable:,}')
+    log.info(f'  Trainable params: {trainable:,}')
 
     optimizer = optim.Adam(model.parameters(), lr=1e-4, weight_decay=1e-4)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=7, factor=0.5)
 
-    train_loop(model, train_seq_loader, val_seq_loader, criterion,
-               optimizer, scheduler, device, n_epochs=args.finetune_epochs,
-               patience=15, clip_norm=1.0, stage_name='Fine-tune')
+    _, finetune_history = train_loop(
+        model, train_seq_loader, val_seq_loader, criterion,
+        optimizer, scheduler, device, n_epochs=args.finetune_epochs,
+        patience=15, clip_norm=1.0, stage_name='Fine-tune')
 
     # ── Final evaluation ──
-    print('\n[5] Final evaluation...')
+    log.info('\n[5] Final evaluation...')
     val_results = evaluate(model, val_seq_loader, criterion, device)
     test_results = evaluate(model, test_seq_loader, criterion, device)
 
     for name, results in [('Validation', val_results), ('Test', test_results)]:
-        print(f'\n  {name}:')
-        print(f'    Accuracy:    {results["accuracy"]:.4f}')
-        print(f'    F1 (macro):  {results["f1_macro"]:.4f}')
-        print(f'    F1 (weighted): {results["f1_weighted"]:.4f}')
-        print(f'    Kappa:       {results["kappa"]:.4f}')
-        print( '\n    Classification Report:')
-        print(classification_report(results['true'], results['preds'],
-                                    target_names=STAGE_NAMES, digits=3))
-        print( '    Confusion Matrix:')
-        print(confusion_matrix(results['true'], results['preds']))
+        log.info(f'\n  {name}:')
+        log.info(f'    Accuracy:    {results["accuracy"]:.4f}')
+        log.info(f'    F1 (macro):  {results["f1_macro"]:.4f}')
+        log.info(f'    F1 (weighted): {results["f1_weighted"]:.4f}')
+        log.info(f'    Kappa:       {results["kappa"]:.4f}')
+        log.info('\n    Classification Report:')
+        log.info(classification_report(results['true'], results['preds'],
+                                       target_names=STAGE_NAMES, digits=3))
+        log.info('    Confusion Matrix:')
+        log.info(confusion_matrix(results['true'], results['preds']))
 
     # Save model
     model_path = os.path.join(args.output_dir,
                               f'cnn_bilstm_fold{fold_idx}_L{seq_length}.pt')
     torch.save(model.state_dict(), model_path)
-    print(f'\n  Saved model: {model_path}')
+    log.info(f'\n  Saved model: {model_path}')
+
+    # Save structured results as JSON for aggregation
+    test_cm = confusion_matrix(test_results['true'], test_results['preds'])
+    test_report = classification_report(test_results['true'], test_results['preds'],
+                                        target_names=STAGE_NAMES, digits=4,
+                                        output_dict=True)
+    val_cm = confusion_matrix(val_results['true'], val_results['preds'])
+    val_report = classification_report(val_results['true'], val_results['preds'],
+                                       target_names=STAGE_NAMES, digits=4,
+                                       output_dict=True)
+
+    training_history = {
+        'LSTM': lstm_history,
+        'Fine-tune': finetune_history,
+    }
+    if not args.skip_pretrain:
+        training_history['CNN pretrain'] = cnn_history
+
+    fold_results = {
+        'fold': fold_idx,
+        'seq_length': seq_length,
+        'test_metrics': {
+            'accuracy': test_results['accuracy'],
+            'f1_macro': test_results['f1_macro'],
+            'f1_weighted': test_results['f1_weighted'],
+            'kappa': test_results['kappa'],
+        },
+        'val_metrics': {
+            'accuracy': val_results['accuracy'],
+            'f1_macro': val_results['f1_macro'],
+            'f1_weighted': val_results['f1_weighted'],
+            'kappa': val_results['kappa'],
+        },
+        'test_confusion_matrix': test_cm.tolist(),
+        'val_confusion_matrix': val_cm.tolist(),
+        'test_per_class': {s: {k: test_report[s][k] for k in ['precision', 'recall', 'f1-score', 'support']}
+                           for s in STAGE_NAMES},
+        'val_per_class': {s: {k: val_report[s][k] for k in ['precision', 'recall', 'f1-score', 'support']}
+                          for s in STAGE_NAMES},
+        'training_history': training_history,
+    }
+
+    json_path = os.path.join(args.output_dir, f'fold{fold_idx}_results.json')
+    with open(json_path, 'w') as f:
+        json.dump(fold_results, f, indent=2)
+    log.info(f'  Saved results: {json_path}')
 
     return {
         'fold': fold_idx,
@@ -304,18 +390,30 @@ def main():
                         help='Skip CNN pre-training (use random init)')
     parser.add_argument('--output_dir', type=str, default='output',
                         help='Directory for checkpoints')
+    parser.add_argument('--skip_existing', action='store_true',
+                        help='Skip fold if results JSON already exists')
     args = parser.parse_args()
+
+    # Set up logging to console + file
+    log_path = setup_logging(args.output_dir, args.fold, args.seq_len)
+    log.info(f'Logging to: {log_path}')
+
+    # Check if fold already completed
+    json_path = os.path.join(args.output_dir, f'fold{args.fold}_results.json')
+    if args.skip_existing and os.path.exists(json_path):
+        log.info(f'Fold {args.fold} already completed ({json_path}), skipping.')
+        return
 
     results = run_fold(args.fold, args.seq_len, args)
 
-    print(f'\n{"=" * 70}')
-    print('SUMMARY')
-    print(f'{"=" * 70}')
+    log.info(f'\n{"=" * 70}')
+    log.info('SUMMARY')
+    log.info(f'{"=" * 70}')
     for k, v in results.items():
         if isinstance(v, float):
-            print(f'  {k}: {v:.4f}')
+            log.info(f'  {k}: {v:.4f}')
         else:
-            print(f'  {k}: {v}')
+            log.info(f'  {k}: {v}')
 
 
 if __name__ == '__main__':

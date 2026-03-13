@@ -1,0 +1,81 @@
+\documentclass[final]{article}
+
+\usepackage[preprint]{neurips_2025}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{nicefrac}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{amsmath}
+
+\title{SleepStageNet: Deep Learning for Automated Sleep Stage Classification}
+
+\author{%
+  Shrinivas Acharya \\
+  % University of Washington \\
+  \texttt{acharyas@cs.washington.edu} \\
+  \And
+  Manish Das \\
+  % University of Washington \\
+  \texttt{manishuw@cs.washington.edu} \\
+  \AND
+  Nithin Balachandran \\
+  % University of Washington \\
+  \texttt{nibalach@cs.washington.edu} \\
+  \And
+  Regith Lingesh \\
+  % University of Washington \\
+  \texttt{rlingesh@cs.washington.edu} \\
+  \And
+  Thangakumar Dhanasekaran \\
+  % University of Washington \\
+  \texttt{tdhana@cs.washington.edu} \\
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Sleep staging, classifying sleep into physiological stages, is essential for diagnosing sleep disorders but requires trained technicians to manually score hours of recordings. We propose developing deep learning approaches for automated 5-class sleep stage classification (Wake, N1, N2, N3, REM) using the Sleep-EDF dataset. Our project will progress from traditional spectral-feature baselines to convolutional neural networks on raw EEG, investigating how temporal context can improve classification accuracy.
+\end{abstract}
+
+\section{Background and Motivation}
+
+Sleep disorders affect millions worldwide, yet diagnosis requires expensive overnight polysomnography studies scored by trained technicians. A single night's recording can take hours to annotate manually, creating a significant bottleneck in clinical practice. Automated sleep staging using deep learning offers a promising path toward more accessible and scalable sleep assessment.
+
+Recent advances demonstrate the viability of this approach. DeepSleepNet \cite{Supratak2017} showed that CNNs combined with bidirectional LSTMs can learn directly from raw EEG signals, achieving performance comparable to human experts. U-Sleep \cite{Perslev2021} introduced a fully convolutional U-Net-inspired architecture that achieves state-of-the-art results across multiple datasets, demonstrating robust generalization. More recently, attention-based methods like AttnSleep \cite{Eldele2021} have shown potential for capturing long-range temporal dependencies inherent in sleep architecture.
+
+Key insights from this literature guide our project: (1) end-to-end learning from raw signals is viable without extensive hand-crafted features, (2) temporal context matters significantly since sleep stages exhibit structured transitions, and (3) N1 (light sleep) detection remains challenging due to its transitional nature between wakefulness and deeper sleep.
+
+\section{Dataset}
+
+We will use the \textbf{Sleep-EDF Expanded} dataset from PhysioNet \cite{SleepEDF2018, Goldberger2000}\footnote{\url{https://physionet.org/content/sleep-edfx/1.0.0/}}, a widely-used benchmark for sleep staging research. The dataset contains 197 whole-night polysomnographic (PSG) recordings from healthy subjects, with EEG channels (Fpz-Cz, Pz-Oz) sampled at 100 Hz. Each 30-second epoch is annotated by sleep experts according to AASM guidelines into five classes: Wake (W), N1 (light sleep), N2 (intermediate sleep), N3 (deep/slow-wave sleep), and REM.
+
+The dataset presents challenges typical of real-world sleep data: severe class imbalance where N2 dominates and N1 is underrepresented, substantial subject-to-subject variability in sleep patterns, and the inherent difficulty of distinguishing transitional stages. These characteristics make it an ideal testbed for developing robust classification methods.
+
+\section{Proposed Approach}
+
+Our project follows a progression of increasing model complexity:
+
+\textbf{Baseline: Spectral Features + Traditional ML.} We will extract frequency-domain features from each 30-second epoch, computing power spectral density in standard EEG bands: delta (0.5--4 Hz), theta (4--8 Hz), alpha (8--12 Hz), sigma (12--16 Hz), and beta (16--30 Hz). These features reflect clinically-meaningful patterns, delta waves dominate deep sleep, while sigma band captures sleep spindles characteristic of N2. A Random Forest classifier will establish baseline performance and validate our data pipeline.
+
+\textbf{CNN on Raw EEG.} We will develop 1D convolutional networks that learn directly from raw EEG waveforms, bypassing manual feature engineering. The architecture will use multiple convolutional layers with varying kernel sizes to capture patterns at different temporal scales, followed by global pooling for epoch-level classification. This tests whether deep learning can discover discriminative features beyond traditional spectral analysis.
+
+\textbf{Temporal Context.} Sleep stages are not independent, they exhibit structured transitions and temporal patterns (e.g., deep sleep predominates early in the night, REM cycles lengthen toward morning). We plan to investigate methods for incorporating this context: sequence models that consider neighboring epochs, attention mechanisms to weight relevant time points, or temporal smoothing constraints. The specific architecture will be informed by results from our baseline experiments.
+
+\section{Evaluation}
+
+We will evaluate models using metrics appropriate for imbalanced multi-class classification: overall accuracy, macro F1-score (averaging across classes equally), per-class F1-scores, and Cohen's kappa, the standard agreement metric in clinical sleep scoring literature. Confusion matrices will reveal systematic error patterns between sleep stages.
+
+% Critically, we will use subject-wise cross-validation to ensure that test subjects are completely unseen during training, preventing data leakage from the same individual's recordings. We anticipate that N1 detection and class imbalance will pose the primary challenges, consistent with findings in prior work.
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}

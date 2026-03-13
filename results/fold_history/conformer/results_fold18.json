@@ -1,0 +1,14 @@
+{
+  "fold": 18,
+  "model": "conformer",
+  "seq_length": 11,
+  "val_accuracy": 0.8641089996414485,
+  "val_f1_macro": 0.8108319192530973,
+  "val_f1_weighted": 0.8696743183105318,
+  "val_kappa": 0.8102587244770016,
+  "test_accuracy": 0.7886266094420601,
+  "test_f1_macro": 0.7467612647795322,
+  "test_f1_weighted": 0.7933582379715299,
+  "test_kappa": 0.7248557997065792,
+  "total_params": 1338821
+}

@@ -1,0 +1,14 @@
+{
+  "fold": 1,
+  "model": "cnn_bilstm",
+  "seq_length": 11,
+  "val_accuracy": 0.8699106256206555,
+  "val_f1_macro": 0.8589574718246921,
+  "val_f1_weighted": 0.8680366440565312,
+  "val_kappa": 0.8189795204947713,
+  "test_accuracy": 0.8871749669457911,
+  "test_f1_macro": 0.8553367790726281,
+  "test_f1_weighted": 0.8898364641475159,
+  "test_kappa": 0.8340558308607291,
+  "total_params": 850757
+}

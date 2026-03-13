@@ -37,12 +37,20 @@ Improved sleep stage classification models building on the CNN+BiLSTM baseline f
 
 ## Files
 
-| File | Purpose |
-|------|---------|
-| `models.py` | 3 registered model architectures + Focal Loss + Mixup utilities (also contains 2 unregistered experimental classes: `SleepAttnBiLSTM`, `SleepTransformerNet`) |
-| `data_loader.py` | Data loading with lazy sequence construction, augmentation, balanced sampling |
-| `train.py` | Training script with 3-stage training, config presets, resume support, Drive checkpoint sync |
-| `notebooks/Enhanced_SleepNet_Colab.ipynb` | Google Colab notebook for full pipeline (Drive integration, 20-fold comparison dashboard) |
+### Python Modules
+
+| File | Description |
+|------|-------------|
+| `models.py` | **All model architectures & training utilities (766 lines).** Defines 5 architectures sharing a CNN backbone: `SleepCNNOnly`, `SleepCNNBiLSTM`, `SleepAttnBiLSTM` (experimental), `SleepTransformerNet` (experimental), `SleepConformer`. Includes `CNNFeatureExtractor` (single-scale) and `MultiScaleCNNExtractor` (dual-path k=50 + k=400). Also provides `LearnablePositionalEncoding`, `SinusoidalPositionalEncoding`, `FocalLoss`, `mixup_data()`, `mixup_criterion()`, and `MODEL_REGISTRY` / `MODEL_CONFIGS` / `build_model()` for easy model lookup and default hyperparameters. 3 models registered (`cnn_only`, `cnn_bilstm`, `conformer`); 2 unregistered experimental (`SleepAttnBiLSTM`, `SleepTransformerNet`). |
+| `data_loader.py` | **Data loading pipeline (357 lines).** Loads per-subject NPZ recordings and the 20-fold LOSO-CV split. Builds sliding-window sequences of epochs via `create_sequences()` and `build_sequences_from_recordings()`. Provides two dataset classes: `SleepSequenceDataset` (returns L-epoch sequences for temporal models) and `SleepEpochDataset` (single epochs for CNN-only). Includes `EEGAugmentation` (time shift ±50 samples, amplitude scaling ±10%, Gaussian noise), `get_balanced_sampler()` using sklearn's `compute_class_weight`, and `get_fold_data()` — a single-call function that returns train/val/test datasets + class weights for any fold. |
+| `train.py` | **Full training script (644 lines).** Supports all model architectures via `MODEL_REGISTRY`. Implements 3-stage training: (1) pretrain CNN, (2) train temporal layers with CNN frozen, (3) fine-tune end-to-end. Key components: `CosineAnnealingWithWarmup` scheduler, `train_one_epoch()` with optional Mixup, `evaluate()`, `train_loop()` with early stopping and best-model checkpointing, `run_fold()` for full fold orchestration, and `main()` for single-fold or all-20-fold CV with aggregated metrics. Supports `--drive_ckpt_dir` for Colab crash resilience, `--balanced_sampling`, gradient accumulation, and `--list_models` to enumerate the registry. |
+
+### Notebooks
+
+| File | Description |
+|------|-------------|
+| `notebooks/[Conformer] Enhanced_SleepNet_Colab.ipynb` | Google Colab notebook for training the **Conformer** model. Includes Drive mounting, data setup, 20-fold LOSO-CV execution, checkpoint sync to Drive, and results dashboard. |
+| `notebooks/[LSTM] of Enhanced_SleepNet_Colab.ipynb` | Google Colab notebook for training the **CNN+BiLSTM** model. Same pipeline as the Conformer notebook but configured for the `cnn_bilstm` architecture. |
 
 ## Quick Start
 

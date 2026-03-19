@@ -48,7 +48,7 @@
 \maketitle
 
 \begin{abstract}
-Automated sleep staging from raw electroencephalography (EEG) signals promises to reduce the cost and subjectivity of manual polysomnography scoring, which currently requires 2--4 hours of expert effort per overnight recording. We present a systematic comparison of three progressively complex architectures for 5-class sleep stage classification on the Sleep-EDF v1 dataset: (1)~a dual-path multi-scale CNN baseline inspired by DeepSleepNet-Lite, (2)~the same CNN backbone augmented with a two-layer bidirectional LSTM for temporal context modeling, and (3)~a CNN--Conformer hybrid that replaces the recurrent layer with Conformer blocks combining multi-head self-attention and depthwise convolution. All models are evaluated under an identical 20-fold leave-one-subject-out cross-validation protocol. The CNN+BiLSTM achieves the best performance with 83.9\% accuracy, macro F1 of 0.79, and Cohen's $\kappa$ of 0.778---approaching the lower bound of human inter-scorer agreement ($\kappa \approx 0.75$--$0.85$). Notably, the BiLSTM outperforms the Conformer across all metrics despite having fewer parameters, suggesting that recurrent inductive biases are preferable to attention mechanisms on small sequential EEG datasets. Our results confirm that temporal context modeling is the single most impactful architectural choice, yielding a 3 percentage-point accuracy improvement and a 17.7\% relative gain on the challenging N1 stage.
+Automated sleep staging from raw electroencephalography (EEG) signals promises to reduce the cost and subjectivity of manual polysomnography scoring, which currently requires 2--4 hours of expert effort per overnight recording. We present a systematic comparison of three progressively complex architectures for 5-class sleep stage classification on the Sleep-EDF v1 dataset: (1)~a dual-path multi-scale CNN baseline inspired by DeepSleepNet-Lite, (2)~the same CNN backbone augmented with a two-layer bidirectional LSTM for temporal context modeling, and (3)~a CNN--Conformer hybrid that replaces the recurrent layer with Conformer blocks combining multi-head self-attention and depthwise convolution. All models are evaluated under an identical 20-fold leave-one-subject-out cross-validation protocol. The CNN+BiLSTM achieves the best performance with 84.2\% accuracy, macro F1 of 0.79, and Cohen's $\kappa$ of 0.784---approaching the lower bound of human inter-scorer agreement ($\kappa \approx 0.75$--$0.85$). Notably, the BiLSTM outperforms the Conformer across all metrics despite having fewer parameters, suggesting that recurrent inductive biases are preferable to attention mechanisms on small sequential EEG datasets. Our results confirm that temporal context modeling is the single most impactful architectural choice, yielding a 3.3 percentage-point accuracy improvement and a 17.7\% relative gain on the challenging N1 stage.
 \end{abstract}
 
 %==============================================================================
@@ -61,7 +61,7 @@ Deep learning has shown strong potential. DeepSleepNet~\cite{Supratak2017} intro
 
 We address this through a controlled comparison of three architectures sharing a common multi-scale CNN backbone, differing only in temporal modeling: no temporal modeling (baseline), a two-layer BiLSTM, and a three-block Conformer---all evaluated under identical 20-fold LOSO-CV on Sleep-EDF v1.
 
-Our contributions are: (1)~a systematic comparison showing temporal context is the dominant factor (+3 pp accuracy over baseline); (2)~evidence that BiLSTM outperforms the Conformer on small EEG datasets, achieving $\kappa = 0.778$; and (3)~per-class analysis revealing temporal models most benefit stages with ambiguous spectral signatures (N1, Wake, REM). Our code is publicly available~\cite{SleepStageNetRepo}.
+Our contributions are: (1)~a systematic comparison showing temporal context is the dominant factor (+3.3 pp accuracy over baseline); (2)~evidence that BiLSTM outperforms the Conformer on small EEG datasets, achieving $\kappa = 0.784$; and (3)~per-class analysis revealing temporal models most benefit stages with ambiguous spectral signatures (N1, Wake, REM). Our code is publicly available~\cite{SleepStageNetRepo}.
 
 %==============================================================================
 \section{Related Work}
@@ -136,7 +136,7 @@ We formalize this with a bidirectional LSTM~\cite{Hochreiter1997}. Each epoch is
 Using two stacked LSTM layers enables hierarchical temporal abstraction: the first layer captures local patterns (e.g., N2$\to$N3 transitions), while the second layer can model longer-range dependencies (e.g., REM cycle timing). The model has $\sim$851K parameters.
 
 %--------------------------------------
-\subsection{Model~3: CNN + Conformer}
+\subsection{Model~3: Conformer}
 \label{sec:conformer}
 %--------------------------------------
 
@@ -194,7 +194,7 @@ We use \textbf{20-fold leave-one-subject-out cross-validation} (LOSO-CV): each f
 \subsection{Overall Comparison}
 %--------------------------------------
 
-Table~\ref{tab:main_results} presents the main results. Both temporal models improve significantly over the baseline. The CNN+BiLSTM achieves the best performance with 83.9\% accuracy, macro F1 of 0.79, and $\kappa = 0.778$, outperforming the Conformer on every metric despite 37\% fewer parameters (851K vs.\ 1.34M).
+Table~\ref{tab:main_results} presents the main results. Both temporal models improve significantly over the baseline. The CNN+BiLSTM achieves the best performance with 84.2\% accuracy, macro F1 of 0.79, and $\kappa = 0.784$, outperforming the Conformer on every metric despite 37\% fewer parameters (851K vs.\ 1.34M).
 
 \begin{table}[t]
 \caption{Overall performance comparison. $\star$~=~best model. Baseline reports pooled 20-fold values; temporal models report mean $\pm$ std across folds.}
@@ -206,8 +206,8 @@ Table~\ref{tab:main_results} presents the main results. Both temporal models imp
 \textbf{Model} & \textbf{Accuracy} & \textbf{Macro F1} & \textbf{Cohen's $\kappa$} & \textbf{N1 F1} \\
 \midrule
 Baseline (CNN)           & 80.9\%                  & 0.753              & 0.740               & 0.441 \\
-CNN+BiLSTM $\star$       & 83.9\% $\pm$ 6.5\%     & 0.79 $\pm$ 0.067   & 0.778 $\pm$ 0.091   & 0.519 \\
-Conformer            & 83.0\% $\pm$ 7.3\%     & 0.78 $\pm$ 0.07    & 0.768 $\pm$ 0.10    & 0.500 \\
+CNN+BiLSTM $\star$       & 84.2\% $\pm$ 6.6\%     & 0.79 $\pm$ 0.067   & 0.784 $\pm$ 0.086   & 0.519 \\
+Conformer            & 82.9\% $\pm$ 7.4\%     & 0.78 $\pm$ 0.074   & 0.768 $\pm$ 0.095   & 0.500 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -251,7 +251,7 @@ Figure~\ref{fig:per_class_f1} provides a visual comparison of per-class F1 betwe
 \subsection{Cross-Validation Stability}
 %--------------------------------------
 
-Figure~\ref{fig:boxplots} shows the metric distributions across 20 folds. Both temporal models exhibit high inter-subject variance (std 6.5--7.3\%), reflecting diversity in individual sleep architecture. The BiLSTM shows tighter distributions than the Conformer on all metrics. Fold~11 is a consistent outlier ($\sim$62--64\% accuracy), suggesting atypical sleep patterns for that subject.
+Figure~\ref{fig:boxplots} shows the metric distributions across 20 folds. Both temporal models exhibit high inter-subject variance (std 6.6--7.4\%), reflecting diversity in individual sleep architecture. The BiLSTM shows tighter distributions than the Conformer on all metrics. Fold~11 is a consistent outlier ($\sim$62--64\% accuracy), suggesting atypical sleep patterns for that subject.
 
 Figure~\ref{fig:confusion} presents the pooled confusion matrices. The temporal models show substantially reduced off-diagonal mass in the Wake and REM rows compared to the baseline, confirming that temporal context resolves many Wake$\leftrightarrow$N1 and N1$\leftrightarrow$REM confusions.
 
@@ -283,9 +283,9 @@ Figure~\ref{fig:confusion} presents the pooled confusion matrices. The temporal 
 \subsection{Clinical Context}
 %--------------------------------------
 
-Cohen's $\kappa = 0.778$ for the CNN+BiLSTM places it at the lower bound of human inter-scorer agreement ($\kappa \approx 0.75$--$0.85$)~\cite{Rosenberg2013}. The single-channel requirement (Fpz-Cz only) makes this applicable to consumer-grade wearable devices, though N1 F1 of 0.519 would need improvement for diagnostic use.
+Cohen's $\kappa = 0.784$ for the CNN+BiLSTM places it at the lower bound of human inter-scorer agreement ($\kappa \approx 0.75$--$0.85$)~\cite{Rosenberg2013}. The single-channel requirement (Fpz-Cz only) makes this applicable to consumer-grade wearable devices, though N1 F1 of 0.519 would need improvement for diagnostic use.
 
-For context, published methods on Sleep-EDF report accuracies in the 80--86\% range: DeepSleepNet~\cite{Supratak2017} achieved $\sim$82\% with a similar dual-path CNN+BiLSTM but using a different train/test split; AttnSleep~\cite{Eldele2021} reported $\sim$84.4\% with multi-head attention; and SleepTransformer~\cite{Phan2022} reached $\sim$84--85\% using dual-granularity transformers. Direct comparison is complicated by differences in dataset versions (Sleep-EDF-20 vs.\ Sleep-EDF-78), cross-validation protocols (k-fold vs.\ LOSO), and preprocessing pipelines. Our 20-fold LOSO-CV is among the most rigorous evaluation protocols, as it ensures complete subject independence between training and testing---a requirement for any clinically deployed system. Under this strict protocol, our CNN+BiLSTM's 83.9\% accuracy and $\kappa = 0.778$ are competitive with the state of the art.
+For context, published methods on Sleep-EDF report accuracies in the 80--86\% range: DeepSleepNet~\cite{Supratak2017} achieved $\sim$82\% with a similar dual-path CNN+BiLSTM but using a different train/test split; AttnSleep~\cite{Eldele2021} reported $\sim$84.4\% with multi-head attention; and SleepTransformer~\cite{Phan2022} reached $\sim$84--85\% using dual-granularity transformers. Direct comparison is complicated by differences in dataset versions (Sleep-EDF-20 vs.\ Sleep-EDF-78), cross-validation protocols (k-fold vs.\ LOSO), and preprocessing pipelines. Our 20-fold LOSO-CV is among the most rigorous evaluation protocols, as it ensures complete subject independence between training and testing---a requirement for any clinically deployed system. Under this strict protocol, our CNN+BiLSTM's 84.2\% accuracy and $\kappa = 0.784$ are competitive with the state of the art.
 
 %==============================================================================
 \section{Discussion}
@@ -351,7 +351,7 @@ Several avenues could address these limitations: (1)~\textbf{Multi-modal inputs}
 \section{Conclusion}
 %==============================================================================
 
-We presented a systematic comparison of three architectures for automated sleep stage classification, sharing a common multi-scale CNN backbone and differing in temporal modeling. Our results demonstrate that temporal context modeling is the dominant factor for performance, yielding a 3 pp accuracy improvement and 17.7\% relative N1 F1 gain over the CNN-only baseline. The CNN+BiLSTM model achieves $\kappa = 0.778$, approaching the lower bound of human inter-scorer agreement, and outperforms the more complex Conformer---suggesting that recurrent inductive biases are preferable to attention mechanisms on small sequential EEG datasets with $\sim$42K training examples. As wearable EEG devices become more prevalent, lightweight models that operate on single-channel input while achieving near-expert-level agreement will be essential for scalable sleep medicine.
+We presented a systematic comparison of three architectures for automated sleep stage classification, sharing a common multi-scale CNN backbone and differing in temporal modeling. Our results demonstrate that temporal context modeling is the dominant factor for performance, yielding a 3.3 pp accuracy improvement and 17.7\% relative N1 F1 gain over the CNN-only baseline. The CNN+BiLSTM model achieves $\kappa = 0.784$, approaching the lower bound of human inter-scorer agreement, and outperforms the more complex Conformer---suggesting that recurrent inductive biases are preferable to attention mechanisms on small sequential EEG datasets with $\sim$42K training examples. As wearable EEG devices become more prevalent, lightweight models that operate on single-channel input while achieving near-expert-level agreement will be essential for scalable sleep medicine.
 
 \bibliographystyle{plain}
 \bibliography{references}

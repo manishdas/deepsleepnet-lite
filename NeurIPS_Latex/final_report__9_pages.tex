@@ -164,7 +164,7 @@ Table~\ref{tab:hyperparams} summarizes the hyperparameters.
 \small
 \begin{tabular}{lccc}
 \toprule
-\textbf{Hyperparameter} & \textbf{Baseline} & \textbf{CNN+BiLSTM} & \textbf{CNN+Conformer} \\
+\textbf{Hyperparameter} & \textbf{Baseline} & \textbf{CNN+BiLSTM} & \textbf{Conformer} \\
 \midrule
 Framework        & TensorFlow   & PyTorch     & PyTorch \\
 Sequence length  & 3 (concat)   & 11          & 11 \\
@@ -207,7 +207,7 @@ Table~\ref{tab:main_results} presents the main results. Both temporal models imp
 \midrule
 Baseline (CNN)           & 80.9\%                  & 0.753              & 0.740               & 0.441 \\
 CNN+BiLSTM $\star$       & 83.9\% $\pm$ 6.5\%     & 0.79 $\pm$ 0.067   & 0.778 $\pm$ 0.091   & 0.519 \\
-CNN+Conformer            & 83.0\% $\pm$ 7.3\%     & 0.78 $\pm$ 0.07    & 0.768 $\pm$ 0.10    & 0.500 \\
+Conformer            & 83.0\% $\pm$ 7.3\%     & 0.78 $\pm$ 0.07    & 0.768 $\pm$ 0.10    & 0.500 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -225,7 +225,7 @@ Table~\ref{tab:per_class} shows per-class F1 scores. The temporal models yield t
 \small
 \begin{tabular}{lccccc}
 \toprule
-\textbf{Stage} & \textbf{Baseline} & \textbf{CNN+BiLSTM} & \textbf{CNN+Conformer} & $\boldsymbol{\Delta}$ \\
+\textbf{Stage} & \textbf{Baseline} & \textbf{CNN+BiLSTM} & \textbf{Conformer} & $\boldsymbol{\Delta}$ \\
 \midrule
 Wake  & 0.802 & \textbf{0.881} & 0.870 & +0.079 \\
 N1    & 0.441 & \textbf{0.519} & 0.500 & +0.078 \\
@@ -243,7 +243,7 @@ Figure~\ref{fig:per_class_f1} provides a visual comparison of per-class F1 betwe
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.72\columnwidth]{cv20_per_class_f1.png}
-  \caption{Per-class F1 comparison between CNN+BiLSTM and CNN+Conformer across 20-fold LOSO-CV. The BiLSTM leads on all stages except N2 (tied).}
+  \caption{Per-class F1 comparison between CNN+BiLSTM and Conformer across 20-fold LOSO-CV. The BiLSTM leads on all stages except N2 (tied).}
   \label{fig:per_class_f1}
 \end{figure}
 
@@ -266,7 +266,7 @@ Figure~\ref{fig:confusion} presents the pooled confusion matrices. The temporal 
   \begin{subfigure}[b]{0.48\textwidth}
     \centering
     \includegraphics[width=\textwidth]{cv20_confusion_matrices.png}
-    \caption{CNN+BiLSTM and CNN+Conformer}
+    \caption{CNN+BiLSTM and Conformer}
   \end{subfigure}
   \caption{Pooled confusion matrices across all 20 folds. (a)~Baseline shows heavy N1 confusion with Wake and N2. (b)~Temporal models substantially reduce off-diagonal errors.}
   \label{fig:confusion}
